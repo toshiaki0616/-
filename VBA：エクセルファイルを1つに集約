@@ -1,0 +1,42 @@
+Sub MergeExcelFiles()
+  Dim fnameList, fnameCurFile As Variant
+  Dim countFiles, countSheets As Integer
+  Dim wksCurSheet As Worksheet
+  Dim wbkCurBook, wbkSrcBook As Workbook
+
+  ' ファイルを開く際に使用するフィルター
+  fnameList = Application.GetOpenFilename(FileFilter:="Excel Files (*.xls*), *.xls*", _
+      Title:="選択してください", MultiSelect:=True)
+
+  If (vbBoolean <> VarType(fnameList)) Then
+    ' 1つ以上のファイルが選択された場合
+    If (UBound(fnameList) > 0) Then
+      countFiles = 0
+      countSheets = 0
+
+      ' 新しいブックを作成
+      Set wbkCurBook = Workbooks.Add
+      wbkCurBook.Title = "マージ済み"
+
+      For Each fnameCurFile In fnameList
+        countFiles = countFiles + 1
+
+        ' 選択されたファイルを開く
+        Set wbkSrcBook = Workbooks.Open(FileName:=fnameCurFile)
+
+        For Each wksCurSheet In wbkSrcBook.Sheets
+          countSheets = countSheets + 1
+          wksCurSheet.Copy After:=wbkCurBook.Sheets(wbkCurBook.Sheets.Count)
+        Next
+
+        wbkSrcBook.Close SaveChanges:=False
+      Next
+
+      MsgBox countFiles & "個のファイルがマージされました。" & vbCrLf & _
+             countSheets & "枚のシートが追加されました。", _
+             vbInformation, "マージ完了"
+    Else
+      MsgBox "ファイルが選択されていません。", vbExclamation, "エラー"
+    End If
+  End If
+End Sub

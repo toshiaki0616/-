@@ -1,39 +1,42 @@
 Option Explicit
 
-Sub 複数のフォルダから部分一致で拡張子を含むファイルを一括切り取り移動()
-    Dim SourceFolders() As String
-    Dim DestinationFolder As String
+Sub 継続的なフォルダ移動マクロ()
+    ' 変数の宣言
+    Static SourceFolders() As String
+    Static DestinationFolder As String
     Dim MyFile As String
     Dim SourceFolder As Variant
     Dim i As Integer
-    Dim FileCount As Integer ' ファイルの枚数をカウント
-    Dim SearchKeyword As String ' 検索キーワード
+    Dim FileCount As Integer
+    Dim SearchKeyword As String
+    Dim ContinueMoving As VbMsgBoxResult
 
-    FileCount = 0 ' 初期化
+    ' 初回かどうかを確認して、初回の場合はフォルダの選択を行う
+    If UBound(SourceFolders) = 0 Then
+        ' ソースフォルダを選択
+        With Application.FileDialog(msoFileDialogFolderPicker)
+            .Title = "ソースフォルダを選択してください"
+            .AllowMultiSelect = True
+            If .Show = -1 Then
+                For i = 1 To .SelectedItems.Count
+                    ReDim Preserve SourceFolders(i)
+                    SourceFolders(i) = .SelectedItems(i)
+                Next i
+            Else
+                Exit Sub
+            End If
+        End With
 
-    ' ソースフォルダを選択
-    With Application.fileDialog(msoFileDialogFolderPicker)
-        .Title = "ソースフォルダを選択してください"
-        .AllowMultiSelect = True ' 複数のフォルダを選択可能にする
-        If .Show = -1 Then
-            For i = 1 To .SelectedItems.Count
-                ReDim Preserve SourceFolders(i)
-                SourceFolders(i) = .SelectedItems(i)
-            Next i
-        Else
-            Exit Sub
-        End If
-    End With
-
-    ' 宛先フォルダを選択
-    With Application.fileDialog(msoFileDialogFolderPicker)
-        .Title = "宛先フォルダを選択してください"
-        If .Show = -1 Then
-            DestinationFolder = .SelectedItems(1)
-        Else
-            Exit Sub
-        End If
-    End With
+        ' 宛先フォルダを選択
+        With Application.FileDialog(msoFileDialogFolderPicker)
+            .Title = "宛先フォルダを選択してください"
+            If .Show = -1 Then
+                DestinationFolder = .SelectedItems(1)
+            Else
+                Exit Sub
+            End If
+        End With
+    End If
 
     ' 検索キーワードを入力
     SearchKeyword = InputBox("検索キーワードを入力してください", "キーワード検索")
@@ -52,7 +55,14 @@ Sub 複数のフォルダから部分一致で拡張子を含むファイルを�
         Loop
     Next SourceFolder
 
-    ' ファイルの枚数を含むメッセージボックスを表示
-    MsgBox FileCount & "枚のファイルを宛先フォルダに移動し、ソースフォルダから削除しました。"
-End Sub
+    ' ファイルの枚数と続けて移動するかどうかを含むメッセージボックスを表示
+    ContinueMoving = MsgBox(FileCount & "枚のファイルを宛先フォルダに移動し、ソースフォルダから削除しました。" & vbCrLf & vbCrLf & "続けて移動を行いますか？", vbQuestion + vbYesNo, "継続確認")
 
+    If ContinueMoving = vbYes Then
+        ' 「はい」が選択された場合、処理を継続
+        Call 継続的なフォルダ移動マクロ
+    Else
+        ' 「いいえ」が選択された場合、終了
+        MsgBox "処理が終了しました。", vbInformation, "終了"
+    End If
+End Sub

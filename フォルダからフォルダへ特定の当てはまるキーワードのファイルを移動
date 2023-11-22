@@ -1,0 +1,58 @@
+Option Explicit
+
+Sub 複数のフォルダから部分一致で拡張子を含むファイルを一括切り取り移動()
+    Dim SourceFolders() As String
+    Dim DestinationFolder As String
+    Dim MyFile As String
+    Dim SourceFolder As Variant
+    Dim i As Integer
+    Dim FileCount As Integer ' ファイルの枚数をカウント
+    Dim SearchKeyword As String ' 検索キーワード
+
+    FileCount = 0 ' 初期化
+
+    ' ソースフォルダを選択
+    With Application.fileDialog(msoFileDialogFolderPicker)
+        .Title = "ソースフォルダを選択してください"
+        .AllowMultiSelect = True ' 複数のフォルダを選択可能にする
+        If .Show = -1 Then
+            For i = 1 To .SelectedItems.Count
+                ReDim Preserve SourceFolders(i)
+                SourceFolders(i) = .SelectedItems(i)
+            Next i
+        Else
+            Exit Sub
+        End If
+    End With
+
+    ' 宛先フォルダを選択
+    With Application.fileDialog(msoFileDialogFolderPicker)
+        .Title = "宛先フォルダを選択してください"
+        If .Show = -1 Then
+            DestinationFolder = .SelectedItems(1)
+        Else
+            Exit Sub
+        End If
+    End With
+
+    ' 検索キーワードを入力
+    SearchKeyword = InputBox("検索キーワードを入力してください", "キーワード検索")
+
+    ' 複数のソースフォルダ内のファイルをループ
+    For Each SourceFolder In SourceFolders
+        MyFile = Dir(SourceFolder & "\*.*")
+        Do While MyFile <> ""
+            ' 検索キーワードに部分一致する拡張子を含むファイルを切り取って移動
+            If InStr(1, MyFile, SearchKeyword, vbTextCompare) > 0 Then
+                FileCopy SourceFolder & "\" & MyFile, DestinationFolder & "\" & MyFile
+                Kill SourceFolder & "\" & MyFile ' ソースフォルダ内のファイルを削除
+                FileCount = FileCount + 1 ' ファイルの枚数を増加
+            End If
+            MyFile = Dir
+        Loop
+    Next SourceFolder
+
+    ' ファイルの枚数を含むメッセージボックスを表示
+    MsgBox FileCount & "枚のファイルを宛先フォルダに移動し、ソースフォルダから削除しました。"
+End Sub
+

@@ -1,0 +1,58 @@
+Option Explicit
+
+Sub DeleteFilesWithInputBox()
+    Dim FolderPath As String
+    Dim SearchText As String
+    Dim FileName As String
+    Dim FileExtension As String
+    Dim MyFile As Object
+    Dim MyFolder As Object
+    Dim DeletedFiles As String
+    
+    ' フォルダのパスを入力
+    FolderPath = InputBox("フォルダのパスを入力してください:", "フォルダ選択")
+    
+    ' パスが空白またはキャンセルされた場合は処理を中止
+    If FolderPath = "" Then
+        MsgBox "フォルダのパスが指定されていません。", vbExclamation
+        Exit Sub
+    End If
+    
+    ' 削除するテキストを入力
+    SearchText = InputBox("削除したいテキストを入力してください:", "削除テキスト選択")
+    
+    ' パスが空白またはキャンセルされた場合は処理を中止
+    If SearchText = "" Then
+        MsgBox "削除するテキストが指定されていません。", vbExclamation
+        Exit Sub
+    End If
+    
+    ' 指定したフォルダを開きます
+    Set MyFolder = CreateObject("Scripting.FileSystemObject").GetFolder(FolderPath)
+    
+    ' 削除したファイルを記録する変数
+    DeletedFiles = ""
+    
+    ' フォルダ内の各ファイルを調べます
+    For Each MyFile In MyFolder.Files
+        FileName = MyFile.Name
+        FileExtension = Right(FileName, Len(FileName) - InStrRev(FileName, "."))
+        
+        ' ファイル名に指定のテキストが含まれている場合、ファイルを削除します
+        If InStr(1, FileName, SearchText, vbTextCompare) > 0 Then
+            MyFile.Delete
+            DeletedFiles = DeletedFiles & FileName & vbCrLf
+        End If
+    Next MyFile
+    
+    ' 削除したファイルをメッセージボックスで表示
+    If DeletedFiles <> "" Then
+        MsgBox "削除されたファイル:" & vbCrLf & DeletedFiles, vbInformation
+    Else
+        MsgBox "削除されたファイルはありません。", vbInformation
+    End If
+    
+    ' 後始末
+    Set MyFolder = Nothing
+End Sub
+

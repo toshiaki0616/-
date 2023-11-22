@@ -1,0 +1,28 @@
+Option Explicit
+
+Sub HighlightTextPartial()
+    Dim SearchText As String
+    Dim TargetRange As Range
+    Dim cell As Range
+    Dim FoundPosition As Long
+    
+    ' ユーザーに強調表示したい文字列を入力させる
+    SearchText = InputBox("強調表示したい文字列を入力してください:", "検索")
+    
+    ' 対象となるワークシートの範囲を設定
+    Set TargetRange = Worksheets("Sheet1").UsedRange
+    
+    ' 強調表示のための色を設定（例: 赤）
+    Dim HighlightColor As Long
+    HighlightColor = RGB(255, 0, 0) ' 赤色
+    
+    ' 対象範囲内の各セルを検索し、文字列が見つかったら強調表示
+    For Each cell In TargetRange
+        FoundPosition = InStr(1, cell.Value, SearchText, vbTextCompare)
+        If FoundPosition > 0 Then
+            ' 文字列の一部分を強調表示
+            cell.Characters(Start:=FoundPosition, Length:=Len(SearchText)).Font.Color = HighlightColor
+        End If
+    Next cell
+End Sub
+
